@@ -11,9 +11,29 @@ public class ResponseUtils {
 
     private ResponseUtils(){}
 
+    public static void sendOK(HttpExchange exchange) {
+        sendResponse(exchange, 200, null);
+    }
+
+    public static void sendBadRequest(HttpExchange exchange, String body) {
+        sendResponse(exchange, 400, body);
+    }
+
+    public static void resourceNotFound(HttpExchange exchange) {
+        sendResponse(exchange, 404, null);
+    }
+
     public static void sendMethodNotAllowed(HttpExchange exchange) {
         sendResponse(exchange, 405, null);
-    } 
+    }
+
+    public static void sendTooManyRequests(HttpExchange exchange) {
+        sendResponse(exchange, 429, null);
+    }
+
+    public static void sendInternalServerError(HttpExchange exchange) {
+        sendResponse(exchange, 500, null);
+    }
 
     private static void sendResponse(HttpExchange exchange, int statusCode, String body) {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
@@ -25,10 +45,13 @@ public class ResponseUtils {
                 return;
             }
 
-            exchange.sendResponseHeaders(statusCode, body.getBytes(StandardCharsets.UTF_8).length);
-            OutputStream os = exchange.getResponseBody();
+            try (OutputStream os = exchange.getResponseBody()) {
+                exchange.sendResponseHeaders(statusCode, body.getBytes(StandardCharsets.UTF_8).length);
 
-            os.write(body.getBytes(StandardCharsets.UTF_8));
+                os.write(body.getBytes(StandardCharsets.UTF_8));
+            } catch (Exception e) {
+                logger.severe("Exception occured while writing to OS.");
+            }
 
         } catch (Exception e) {
             logger.severe("Exception occured while sending a response to client.");
