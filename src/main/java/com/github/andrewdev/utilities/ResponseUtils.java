@@ -1,5 +1,6 @@
 package com.github.andrewdev.utilities;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.logging.Logger;
@@ -12,46 +13,46 @@ public class ResponseUtils {
     private ResponseUtils(){}
 
     public static void sendOK(HttpExchange exchange) {
-        sendResponse(exchange, 200, null);
+        sendResponseWithBody(exchange, 200, "{}");
     }
 
     public static void sendBadRequest(HttpExchange exchange, String body) {
-        sendResponse(exchange, 400, body);
+        sendResponseWithBody(exchange, 400, body);
     }
 
     public static void resourceNotFound(HttpExchange exchange) {
-        sendResponse(exchange, 404, null);
+        sendResponseWithNoBody(exchange, 404);
     }
 
     public static void sendMethodNotAllowed(HttpExchange exchange) {
-        sendResponse(exchange, 405, null);
+        sendResponseWithNoBody(exchange, 405);
     }
 
     public static void sendTooManyRequests(HttpExchange exchange) {
-        sendResponse(exchange, 429, null);
+        sendResponseWithNoBody(exchange, 429);
     }
 
     public static void sendInternalServerError(HttpExchange exchange) {
-        sendResponse(exchange, 500, null);
+        sendResponseWithNoBody(exchange, 500);
     }
 
-    private static void sendResponse(HttpExchange exchange, int statusCode, String body) {
+    private static void sendResponseWithNoBody(HttpExchange exchange, int statusCode) {
         exchange.getResponseHeaders().set("Content-Type", "application/json");
 
         try {
-            if (body == null) {
-                exchange.sendResponseHeaders(statusCode, -1);
+            exchange.sendResponseHeaders(statusCode, -1);
+        } catch (IOException ex) {
+            logger.severe("Exception occured while sending a response header.");
+        }
+    }
 
-                return;
-            }
+    private static void sendResponseWithBody(HttpExchange exchange, int statusCode, String body) {
+        exchange.getResponseHeaders().set("Content-Type", "application/json");
 
-            try (OutputStream os = exchange.getResponseBody()) {
-                exchange.sendResponseHeaders(statusCode, body.getBytes(StandardCharsets.UTF_8).length);
+        try (OutputStream os = exchange.getResponseBody()) {
+            exchange.sendResponseHeaders(statusCode, body.getBytes(StandardCharsets.UTF_8).length);
 
-                os.write(body.getBytes(StandardCharsets.UTF_8));
-            } catch (Exception e) {
-                logger.severe("Exception occured while writing to OS.");
-            }
+            os.write(body.getBytes(StandardCharsets.UTF_8));
 
         } catch (Exception e) {
             logger.severe("Exception occured while sending a response to client.");
