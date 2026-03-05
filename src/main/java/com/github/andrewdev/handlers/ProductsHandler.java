@@ -35,8 +35,14 @@ public class ProductsHandler implements HttpHandler{
             return;
         }
 
+        if (redis == null) {
+            ResponseUtils.sendInternalServerError(exchange);
+            return;
+        }
+
         if (RateLimiter.isExceeded(redis, exchange.getRemoteAddress().getAddress().getHostAddress())) {
             ResponseUtils.sendTooManyRequests(exchange);
+            return;
         }
 
         ResponseUtils.sendOK(exchange);
