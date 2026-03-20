@@ -6,7 +6,7 @@ import java.sql.SQLException;
 
 public class DatabaseManager {
     private static final String url = System.getenv("MYSQL_URL");
-    private static final String user = "root";
+    private static final String user = System.getenv("MYSQL_ROOT_USER");
     private static final String password = System.getenv("MYSQL_ROOT_PASSWORD");
 
     private DatabaseManager() {}
