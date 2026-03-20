@@ -2,13 +2,10 @@ package com.github.andrewdev.utilities;
 
 import java.time.Instant;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 import redis.clients.jedis.RedisClient;
 
 public class RateLimiter {
-    private static final Logger logger = Logger.getLogger(RateLimiter.class.getName());
-
     private RateLimiter() {}
 
     public static boolean isExceeded(RedisClient redis, String clientID) {
