@@ -1,23 +1,25 @@
 package com.github.andrewdev.models;
 
+import java.math.BigDecimal;
+
 public class Product {
     private Long id;
     private String name;
-    private double price;
-    private int quantity;
+    private BigDecimal price;
+    private Integer quantity;
 
-    public Product(String name, double price, int quantity) {
+    public Product(String name, BigDecimal price, int quantity) {
         this.id = null;
-        this.name = name;
-        this.price = price;
-        this.quantity = quantity;
+        setName(name);
+        setPrice(price);
+        setQuantity(quantity);
     }
 
-    public Product(Long id, String name, double price, int quantity) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.quantity = quantity;
+    public Product(Long id, String name, BigDecimal price, int quantity) {
+        setId(id);
+        setName(name);
+        setPrice(price);
+        setQuantity(quantity);
     }
 
     public Long getId() {
@@ -25,7 +27,7 @@ public class Product {
     }
 
     public void setId(Long id) {
-        if (id != null) {
+        if (this.id != null) {
             return;
         }
 
@@ -44,15 +46,15 @@ public class Product {
         return name;
     }
 
-    public void setPrice(double price) {
-        if (price < 0) {
+    public void setPrice(BigDecimal price) {
+        if (price.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Provided product price cannot be a negative value");
         }
 
         this.price = price;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
@@ -64,7 +66,28 @@ public class Product {
         this.quantity = quantity;
     }
 
-    public int getQuantity() {
+    public Integer getQuantity() {
         return quantity;
+    }
+
+    public void reduceQuantity(int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Provided amount cannot be a negative value");
+        }
+
+        if (amount > this.quantity) {
+            throw new IllegalArgumentException("Provided amount cannot be greater than the current quantitiy");
+        }
+
+        quantity -= amount;
+    }
+
+    public boolean hasStock() {
+        return quantity > 0;
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" + "id=" + id + ", name=" + name + ", price=" + price + ",quantity=" + quantity + "}";
     }
 }
