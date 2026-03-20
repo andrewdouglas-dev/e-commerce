@@ -6,9 +6,9 @@ import java.util.Optional;
 import com.github.andrewdev.models.Product;
 
 public interface ProductDAO {
-    public void add(Product P);
+    public Long add(Product P);
     public Optional<Product> findById(Long id);
     public List<Product> findAll();
-    public void update(Long id);
+    public void update(Product P);
     public void delete(Long id);
 }

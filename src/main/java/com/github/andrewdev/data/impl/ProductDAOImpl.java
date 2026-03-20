@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.andrewdev.data.DatabaseManager;
@@ -15,22 +16,14 @@ import com.github.andrewdev.data.dao.ProductDAO;
 import com.github.andrewdev.models.Product;
 
 public class ProductDAOImpl implements  ProductDAO{
-    private final Connection connection;
     private static final Logger logger = Logger.getLogger(ProductDAOImpl.class.getName());
-
-    public ProductDAOImpl() {
-        try {
-            this.connection = DatabaseManager.getConnection();
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to initialize database connection",e);
-        }
-    }
 
     @Override
     public Optional<Product> findById(Long id) {
         String statement = "SELECT * FROM products WHERE id = ?";
 
-        try (PreparedStatement pStatement = connection.prepareStatement(statement)){
+        try (Connection connection = DatabaseManager.getConnection();
+            PreparedStatement pStatement = connection.prepareStatement(statement)){
             pStatement.setLong(1, id);
 
             try (ResultSet rs = pStatement.executeQuery()){
@@ -38,9 +31,11 @@ public class ProductDAOImpl implements  ProductDAO{
                     return Optional.of(mapResultSetToProduct(rs));
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            logger.info("test");
             throw new RuntimeException("Error occured while finding product by ID: " + id,e);
         }
+        logger.info("test");
 
         return Optional.empty();
     }
@@ -50,21 +45,45 @@ public class ProductDAOImpl implements  ProductDAO{
         String statement = "SELECT * FROM products";
         List<Product> products = new ArrayList<>();
 
-        try (PreparedStatement pStatement = connection.prepareStatement(statement);
+        try (Connection connection = DatabaseManager.getConnection();
+            PreparedStatement pStatement = connection.prepareStatement(statement);
             ResultSet rs = pStatement.executeQuery();){
 
             while (rs.next()) {
                 products.add(mapResultSetToProduct(rs));
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "test1", e);
             throw new RuntimeException("Error occured while finding all products",e);
         }
+        logger.info("test");
 
         return products;
     }
 
     @Override
-    public void update(Long id) {
+    public void update(Product p) {
+        try {
+            Optional<Product> existingProduct = findById(p.getId());
+
+            if (existingProduct.isEmpty()) {
+                throw new IllegalArgumentException("No product found with ID: " + p.getId());
+            }
+
+            if (p.getName() != null) {
+                existingProduct.get().setName(p.getName());
+            }
+            if (p.getPrice() != null) {
+                existingProduct.get().setPrice(p.getPrice());
+            }
+            if (p.getQuantity() != null) {
+                existingProduct.get().setQuantity(p.getQuantity());
+            }
+            
+        } catch (IllegalArgumentException e){
+            throw new RuntimeException("Error occured while updating product with ID: " + p.getId());
+        }
+
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -72,7 +91,8 @@ public class ProductDAOImpl implements  ProductDAO{
     public void delete(Long id) {
         String statement = "DELETE FROM products WHERE id = ?";
 
-        try (PreparedStatement pStatement = connection.prepareStatement(statement)) {
+        try (Connection connection = DatabaseManager.getConnection();
+            PreparedStatement pStatement = connection.prepareStatement(statement)) {
             boolean recordDeleted = pStatement.executeUpdate() == 1;
 
             if (!recordDeleted) {
@@ -84,28 +104,36 @@ public class ProductDAOImpl implements  ProductDAO{
     }
 
     @Override
-    public void add(Product p) {
+    public Long add(Product p) {
+        if (p == null) {
+            throw new NullPointerException("Provided product cannot be null");
+        }
+
         String statement = "INSERT INTO products (name, price, quantity) VALUES (?, ?, ?)";
 
-        try (PreparedStatement pStatement = connection.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)){
+        try (Connection connection = DatabaseManager.getConnection();
+            PreparedStatement pStatement = connection.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS)){
             pStatement.setString(1, p.getName());
-            pStatement.setDouble(2, p.getPrice());
+            pStatement.setBigDecimal(2, p.getPrice());
             pStatement.setInt(3, p.getQuantity());
 
             boolean recordInserted = pStatement.executeUpdate() == 1;
 
-            if (recordInserted) {
-                try(ResultSet generatedKey = pStatement.getGeneratedKeys()) {
-                    if (generatedKey.next()) {
-                        Long newId = generatedKey.getLong(1);
-                        p.setId(newId);
-                        logger.info("Successfully inserted a record to Products table");
-                    } else {
-                        throw new SQLException("Failed to retrieve generated ID");
-                    }
-                }
-            } else {
+            if (!recordInserted) {
                 throw new RuntimeException("Error occured while adding product: " + p.getName());
+            }
+
+            try(ResultSet generatedKey = pStatement.getGeneratedKeys()) {
+                if (generatedKey.next()) {
+                    logger.info("Successfully inserted a record to Products table");
+                    Long newId = generatedKey.getLong(1);
+
+                    p.setId(newId);
+
+                    return newId;
+                } else {
+                    throw new SQLException("Failed to retrieve generated ID");
+                }
             }
         } catch (SQLException e) {
             throw new RuntimeException("Error occured while adding product: " + p.getName(),e);
@@ -116,7 +144,7 @@ public class ProductDAOImpl implements  ProductDAO{
         return new Product(
             (Long) rs.getLong("id"),
             rs.getString("name"),
-            rs.getDouble("price"),
+            rs.getBigDecimal("price"),
             rs.getInt("quantity")
         );
     }
