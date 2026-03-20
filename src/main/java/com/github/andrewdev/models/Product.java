@@ -1,7 +1,7 @@
 package com.github.andrewdev.models;
 
 public class Product {
-    private final Long id;
+    private Long id;
     private String name;
     private double price;
     private int quantity;
@@ -24,7 +24,19 @@ public class Product {
         return id;
     }
 
+    public void setId(Long id) {
+        if (id != null) {
+            return;
+        }
+
+        this.id = id;
+    }
+
     public void setName(String name) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Provided product name cannot be null or blank");
+        }
+
         this.name = name;
     }
 
@@ -33,6 +45,10 @@ public class Product {
     }
 
     public void setPrice(double price) {
+        if (price < 0) {
+            throw new IllegalArgumentException("Provided product price cannot be a negative value");
+        }
+
         this.price = price;
     }
 
@@ -41,6 +57,10 @@ public class Product {
     }
 
     public void setQuantity(int quantity) {
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Provided product quantity cannot be a negative value");
+        }
+
         this.quantity = quantity;
     }
 
