@@ -32,10 +32,8 @@ public class ProductDAOImpl implements  ProductDAO{
                 }
             }
         } catch (Exception e) {
-            logger.info("test");
             throw new RuntimeException("Error occured while finding product by ID: " + id,e);
         }
-        logger.info("test");
 
         return Optional.empty();
     }
@@ -56,43 +54,56 @@ public class ProductDAOImpl implements  ProductDAO{
             logger.log(Level.SEVERE, "test1", e);
             throw new RuntimeException("Error occured while finding all products",e);
         }
-        logger.info("test");
 
         return products;
     }
 
     @Override
     public void update(Product p) {
-        try {
-            Optional<Product> existingProduct = findById(p.getId());
-
-            if (existingProduct.isEmpty()) {
-                throw new IllegalArgumentException("No product found with ID: " + p.getId());
-            }
-
-            if (p.getName() != null) {
-                existingProduct.get().setName(p.getName());
-            }
-            if (p.getPrice() != null) {
-                existingProduct.get().setPrice(p.getPrice());
-            }
-            if (p.getQuantity() != null) {
-                existingProduct.get().setQuantity(p.getQuantity());
-            }
-            
-        } catch (IllegalArgumentException e){
-            throw new RuntimeException("Error occured while updating product with ID: " + p.getId());
+        if (!validateIDExists(p.getId())) {
+            throw new IllegalArgumentException("No product found with ID: " + p.getId());
         }
 
-        throw new UnsupportedOperationException("Not supported yet.");
+        String statement = "UPDATE products SET name = ?, price = ?, quantity = ? WHERE id = ?";
+
+        try (Connection connection = DatabaseManager.getConnection();
+            PreparedStatement pStatement = connection.prepareStatement(statement)){
+
+            if (p.getName() != null) {
+                pStatement.setString(1, p.getName());
+            }
+            if (p.getPrice() != null) {
+                pStatement.setBigDecimal(2, p.getPrice());
+            }
+            if (p.getQuantity() != null) {
+                pStatement.setInt(3, p.getQuantity());
+            }
+
+            pStatement.setLong(4, p.getId());
+
+            boolean recordUpdated = pStatement.executeUpdate() == 1;
+
+            if (!recordUpdated) {
+                throw new RuntimeException("No product found with ID: " + p.getId());
+            }
+        } catch (Exception e){
+            throw new RuntimeException("Error occured while updating product with ID: " + p.getId());
+        }
     }
 
     @Override
     public void delete(Long id) {
+        if (!validateIDExists(id)) {
+            throw new IllegalArgumentException("No product found with ID: " + id);
+        }
+
         String statement = "DELETE FROM products WHERE id = ?";
 
         try (Connection connection = DatabaseManager.getConnection();
             PreparedStatement pStatement = connection.prepareStatement(statement)) {
+
+            pStatement.setLong(1, id);
+
             boolean recordDeleted = pStatement.executeUpdate() == 1;
 
             if (!recordDeleted) {
@@ -147,5 +158,11 @@ public class ProductDAOImpl implements  ProductDAO{
             rs.getBigDecimal("price"),
             rs.getInt("quantity")
         );
+    }
+
+    private boolean validateIDExists(Long id) {
+        Optional<Product> existingProduct = findById(id);
+
+        return existingProduct.isPresent();
     }
 }
