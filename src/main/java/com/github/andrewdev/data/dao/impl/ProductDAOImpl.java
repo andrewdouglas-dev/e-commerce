@@ -1,4 +1,4 @@
-package com.github.andrewdev.data.impl;
+package com.github.andrewdev.data.dao.impl;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
