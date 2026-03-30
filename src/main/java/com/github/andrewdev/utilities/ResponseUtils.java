@@ -12,15 +12,27 @@ public class ResponseUtils {
 
     private ResponseUtils(){}
 
-    public static void sendOK(HttpExchange exchange) {
-        sendResponseWithBody(exchange, 200, "{}");
+    public static void sendOK(HttpExchange exchange, String body) {
+        if (body == null) {
+            sendResponseWithNoBody(exchange, 204);
+
+            return;
+        }
+
+        sendResponseWithBody(exchange, 200, body);
+    }
+
+    public static void sendCreated(HttpExchange exchange, String body) {
+        body = body == null ? "{}" : body;
+
+        sendResponseWithBody(exchange, 201, body);
     }
 
     public static void sendBadRequest(HttpExchange exchange, String body) {
         sendResponseWithBody(exchange, 400, body);
     }
 
-    public static void resourceNotFound(HttpExchange exchange) {
+    public static void sendResourceNotFound(HttpExchange exchange) {
         sendResponseWithNoBody(exchange, 404);
     }
 
