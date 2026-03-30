@@ -1,4 +1,4 @@
-package com.github.andrewdev.models.dto;
+package com.github.andrewdev.dto;
 
 import java.math.BigDecimal;
 

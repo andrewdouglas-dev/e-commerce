@@ -5,7 +5,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.andrewdev.data.dao.ProductDAO;
-import com.github.andrewdev.data.impl.ProductDAOImpl;
+import com.github.andrewdev.data.dao.impl.ProductDAOImpl;
 import com.github.andrewdev.models.Product;
 
 import net.datafaker.Faker;
