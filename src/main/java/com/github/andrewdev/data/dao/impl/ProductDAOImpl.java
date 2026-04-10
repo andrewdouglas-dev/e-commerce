@@ -51,7 +51,7 @@ public class ProductDAOImpl implements  ProductDAO{
                 products.add(mapResultSetToProduct(rs));
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "test1", e);
+            logger.log(Level.SEVERE, "Error retrieving products.", e);
             throw new RuntimeException("Error occured while finding all products",e);
         }
 
