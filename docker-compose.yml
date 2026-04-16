@@ -10,6 +10,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_DATABASE=${MYSQL_DATABASE}
       - MYSQL_URL=${MYSQL_URL}
+      - REDIS_URL=${REDIS_URL}
     restart: unless-stopped
     depends_on:
       db:

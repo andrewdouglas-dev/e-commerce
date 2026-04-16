@@ -16,6 +16,7 @@ import com.github.andrewdev.utilities.PathParser;
 import com.github.andrewdev.utilities.RateLimiter;
 import com.github.andrewdev.utilities.ResponseUtils;
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
@@ -31,7 +32,7 @@ public class ProductsHandler implements HttpHandler{
         RedisClient client = null;
 
         try {
-            client = RedisClient.create("redis://ecommerce-redis:6379");
+            client = RedisClient.create(System.getenv("REDIS_URL"));
         } catch (Exception e) {
             logger.log(Level.SEVERE, "Failed to initialize Redis - proceeding without rate-limiting.", e);
         }
@@ -67,6 +68,10 @@ public class ProductsHandler implements HttpHandler{
             logger.log(Level.SEVERE, "Error in Product Handler switch statement.", e);
 
             ResponseUtils.sendInternalServerError(exchange);
+        } catch (IllegalArgumentException e) {
+            ResponseUtils.sendBadRequest(exchange, e.getMessage());
+        } catch (Exception e) {
+            ResponseUtils.sendInternalServerError(exchange);
         }
     }
 
@@ -80,28 +85,23 @@ public class ProductsHandler implements HttpHandler{
             }
 
             ResponseUtils.sendOK(exchange, gson.toJson(result.get()));
-            return;
+        } else {
+            ResponseUtils.sendOK(exchange, gson.toJson(productService.findAll()));
         }
-
-        ResponseUtils.sendOK(exchange, gson.toJson(productService.findAll()));
     }
 
-    private void handlePOST(HttpExchange exchange, String path) throws IOException {
+    private void handlePOST(HttpExchange exchange, String path) throws IOException, Exception {
         if (PathParser.isSpecificResourceRequested(path)) {
             ResponseUtils.sendResourceNotFound(exchange);
             return;
         }
 
-        Product product = parseRequestBody(exchange);
+        ProductRequest productRequest = parseRequestBody(exchange);
 
-        if (product == null) {
-            ResponseUtils.sendInternalServerError(exchange);
-        }
-
-        ResponseUtils.sendCreated(exchange, gson.toJson(productService.create(product)));
+        ResponseUtils.sendCreated(exchange, gson.toJson(productService.create(ProductMapper.convertToNewProduct(productRequest))));
     }
 
-    private void handlePUT(HttpExchange exchange, String path) throws IOException {
+    private void handlePUT(HttpExchange exchange, String path) throws Exception {
         if (!PathParser.isSpecificResourceRequested(path)) {
             ResponseUtils.sendBadRequest(exchange, "ID is required for update.");
             return;
@@ -109,22 +109,9 @@ public class ProductsHandler implements HttpHandler{
 
         Long id = PathParser.extractResourceId(path);
 
-        if (productService.findById(id).isEmpty()) {
-            ResponseUtils.sendResourceNotFound(exchange);
-            return;
-        }
+        ProductRequest productRequest = parseRequestBody(exchange);
 
-        Product product = parseRequestBody(exchange);
-
-        if (product == null) {
-            ResponseUtils.sendBadRequest(exchange, "Invalid request body.");
-            return;
-        }
-
-        product.setId(id);
-        productService.update(product);
-
-        ResponseUtils.sendOK(exchange, gson.toJson(product));
+        ResponseUtils.sendOK(exchange, gson.toJson(productService.update(productRequest, id).toString()));
     }
 
     private void handleDELETE(HttpExchange exchange, String path) {
@@ -133,25 +120,29 @@ public class ProductsHandler implements HttpHandler{
             return;
         }
 
-        Long id = PathParser.extractResourceId(path);
+        productService.delete(PathParser.extractResourceId(path));
 
-        if (productService.findById(id).isEmpty()) {
-            ResponseUtils.sendResourceNotFound(exchange);
-            return;
-        }
-
-        productService.delete(id);
-
-        ResponseUtils.sendOK(exchange, null);
+        ResponseUtils.sendOK(exchange, null);      
     }
 
-    private Product parseRequestBody(HttpExchange exchange) throws IOException {
+    private ProductRequest parseRequestBody(HttpExchange exchange) throws Exception {
         try (InputStream is = exchange.getRequestBody();
             Reader reader = new InputStreamReader(is)){
 
             ProductRequest productDTO = gson.fromJson(reader, ProductRequest.class);
+            productDTO.validate();
 
-            return ProductMapper.convertToProduct(productDTO);
+            return productDTO;
+        } catch (JsonSyntaxException e) {
+            if (e.getMessage().contains("BigDecimal")) {
+                throw new IllegalArgumentException("Provided product price must be a number.");
+            }
+            if (e.getMessage().contains("NumberFormatException")) {
+                throw new IllegalArgumentException("Provided product quantity must be a number.");
+            }
+            throw new IllegalArgumentException("Invalid request body syntax.");
+        } catch (Exception e) {
+            throw e;
         }
     }
 }

@@ -5,6 +5,8 @@ import java.util.Optional;
 
 import com.github.andrewdev.data.dao.ProductDAO;
 import com.github.andrewdev.data.dao.impl.ProductDAOImpl;
+import com.github.andrewdev.dto.ProductRequest;
+import com.github.andrewdev.mapper.ProductMapper;
 import com.github.andrewdev.models.Product;
 
 public class ProductService {
@@ -26,11 +28,29 @@ public class ProductService {
         return productDAO.findAll();
     }
 
-    public void update(Product request) {
-        productDAO.update(request);
+    public Product update(ProductRequest request, Long id) {
+        Optional<Product> existingProduct = findById(id);
+
+        if (existingProduct.isEmpty()) {
+            throw new IllegalArgumentException("No product found with ID: " + id);
+        }
+
+        ProductMapper.updateProduct(request, existingProduct.get());
+
+        productDAO.update(existingProduct.get());   
+        
+        return existingProduct.get();
     }
 
     public void delete(Long id) {
+        if (!exists(id)) {
+            throw new IllegalArgumentException("No product found with ID: " + id);
+        }
+
         productDAO.delete(id);
+    }
+
+    public boolean exists(Long id){
+        return findById(id).isPresent();
     }
 }

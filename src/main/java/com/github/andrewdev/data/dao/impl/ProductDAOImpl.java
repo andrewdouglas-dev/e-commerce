@@ -32,6 +32,7 @@ public class ProductDAOImpl implements  ProductDAO{
                 }
             }
         } catch (Exception e) {
+            logger.log(Level.SEVERE, String.format("Error retrieving product %d", id), e);
             throw new RuntimeException("Error occured while finding product by ID: " + id,e);
         }
 
@@ -60,10 +61,6 @@ public class ProductDAOImpl implements  ProductDAO{
 
     @Override
     public void update(Product p) {
-        if (!validateIDExists(p.getId())) {
-            throw new IllegalArgumentException("No product found with ID: " + p.getId());
-        }
-
         String statement = "UPDATE products SET name = ?, price = ?, quantity = ? WHERE id = ?";
 
         try (Connection connection = DatabaseManager.getConnection();
@@ -93,10 +90,6 @@ public class ProductDAOImpl implements  ProductDAO{
 
     @Override
     public void delete(Long id) {
-        if (!validateIDExists(id)) {
-            throw new IllegalArgumentException("No product found with ID: " + id);
-        }
-
         String statement = "DELETE FROM products WHERE id = ?";
 
         try (Connection connection = DatabaseManager.getConnection();
@@ -158,11 +151,5 @@ public class ProductDAOImpl implements  ProductDAO{
             rs.getBigDecimal("price"),
             rs.getInt("quantity")
         );
-    }
-
-    private boolean validateIDExists(Long id) {
-        Optional<Product> existingProduct = findById(id);
-
-        return existingProduct.isPresent();
     }
 }

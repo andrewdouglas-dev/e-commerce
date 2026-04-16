@@ -36,7 +36,7 @@ public class Product {
 
     public void setName(String name) {
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Provided product name cannot be null or blank");
+            throw new IllegalArgumentException("Provided product name cannot be null or blank.");
         }
 
         this.name = name;
@@ -48,7 +48,7 @@ public class Product {
 
     public void setPrice(BigDecimal price) {
         if (price.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Provided product price cannot be a negative value");
+            throw new IllegalArgumentException("Provided product price cannot be a negative value.");
         }
 
         this.price = price;
@@ -60,7 +60,7 @@ public class Product {
 
     public void setQuantity(int quantity) {
         if (quantity < 0) {
-            throw new IllegalArgumentException("Provided product quantity cannot be a negative value");
+            throw new IllegalArgumentException("Provided product quantity cannot be a negative value.");
         }
 
         this.quantity = quantity;
@@ -72,11 +72,11 @@ public class Product {
 
     public void reduceQuantity(int amount) {
         if (amount < 0) {
-            throw new IllegalArgumentException("Provided amount cannot be a negative value");
+            throw new IllegalArgumentException("Provided amount cannot be a negative value.");
         }
 
         if (amount > this.quantity) {
-            throw new IllegalArgumentException("Provided amount cannot be greater than the current quantitiy");
+            throw new IllegalArgumentException("Provided amount cannot be greater than the current quantitiy.");
         }
 
         quantity -= amount;
@@ -88,6 +88,7 @@ public class Product {
 
     @Override
     public String toString() {
-        return "Product{" + "id=" + id + ", name=" + name + ", price=" + price + ",quantity=" + quantity + "}";
+        return String.format("ID: %s, Name: %s, Price: %s, Quantity: %s", 
+        id, name, price, quantity);
     }
 }

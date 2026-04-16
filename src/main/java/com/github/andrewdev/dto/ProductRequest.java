@@ -10,32 +10,16 @@ public class ProductRequest {
 
     public ProductRequest() {}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public Long getId() {
         return this.id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     public String getName() {
         return this.name;
     }
 
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
     public BigDecimal getPrice() {
         return this.price;
-    }
-
-    public void setQuantity(Integer quantity) {
-        this.quantity = quantity;
     }
 
     public Integer getQuantity() {
@@ -44,6 +28,19 @@ public class ProductRequest {
 
     @Override
     public String toString() {
-        return this.id + " " + this.name + " " + this.price.toString() + " " + this.quantity;
+        return String.format("ID: %s, Name: %s, Price: %s, Quantity: %s", 
+        id, name, price, quantity);
+    }
+
+    public void validate() {
+        if (this.price.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Provided product price cannot be a negative value.");
+        }
+        if (this.quantity < 0) {
+            throw new IllegalArgumentException("Provided product quantity cannot be a negative value.");
+        }
+        if (this.name == null) {
+            throw new IllegalArgumentException("Provided product name cannot be a empty.");
+        }
     }
 }
