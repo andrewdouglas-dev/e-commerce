@@ -3,12 +3,10 @@ package com.github.andrewdev.models;
 public class EmployeeCredentials {
     private final Long id;
     private final String password;
-    private final String salt;
 
-    public EmployeeCredentials(Long id, String password, String salt) {
+    public EmployeeCredentials(Long id, String password) {
         this.id = id;
         this.password = password;
-        this.salt = salt;
     }
 
     public Long getId() {
@@ -17,9 +15,5 @@ public class EmployeeCredentials {
 
     public String getPassword() {
         return this.password;
-    }
-
-    public String getSalt() {
-        return this.salt;
     }
 }

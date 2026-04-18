@@ -100,7 +100,7 @@ public class ProductDAOImpl implements  ProductDAO{
             boolean recordDeleted = pStatement.executeUpdate() == 1;
 
             if (!recordDeleted) {
-                throw new RuntimeException("No product found with ID: " + id);
+                throw new IllegalArgumentException("No product found with ID: " + id);
             }
         } catch (Exception e) {
             throw new RuntimeException("Error occured while deleted product with ID: " + id);

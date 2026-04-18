@@ -47,6 +47,11 @@
       <artifactId>gson</artifactId>
       <version>2.10.1</version> <!-- Use the latest version -->
     </dependency>
+    <dependency>
+      <groupId>de.mkammerer</groupId>
+      <artifactId>argon2-jvm</artifactId>
+      <version>2.7</version>
+    </dependency>
   </dependencies>
 
   <build>

@@ -3,6 +3,7 @@ package com.github.andrewdev;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
+import com.github.andrewdev.handlers.AuthenticationHandler;
 import com.github.andrewdev.handlers.ProductsHandler;
 import com.sun.net.httpserver.HttpServer;
 
@@ -14,6 +15,7 @@ public class App {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         server.createContext("/api/v1/products", new ProductsHandler());
+        server.createContext("/Authentication", new AuthenticationHandler());
 
         server.setExecutor(null);
         server.start();
