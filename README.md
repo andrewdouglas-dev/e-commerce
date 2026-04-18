@@ -15,7 +15,7 @@ A full-featured e-commerce system that demonstrates production-ready architectur
   The application continues to serve requests even when Redis or the database is temporarily unavailable.
 
 - **Full multi-container Docker setup**  
-  Production-like environment with Docker Compose (Spring-like Java app + Redis + MySQL 8). Includes health checks, persistent volumes, and initialization scripts.
+  Production-like environment with Docker Compose (Java app + Redis + MySQL 8). Includes health checks, persistent volumes, and initialization scripts.
 
 - **Secure authentication**  
   Argon2 password hashing + environment-driven configuration via dotenv.
