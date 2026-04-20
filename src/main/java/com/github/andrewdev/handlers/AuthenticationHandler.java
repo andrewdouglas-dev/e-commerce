@@ -5,6 +5,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.andrewdev.data.service.EmployeeService;
+import com.github.andrewdev.utilities.RateLimiter;
 import com.github.andrewdev.utilities.ResponseUtils;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -37,7 +38,31 @@ public class AuthenticationHandler implements HttpHandler {
             return;
         }
 
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'handle'");
+        if (RateLimiter.isExceeded(redis, exchange.getRemoteAddress().getAddress().getHostAddress())) {
+            ResponseUtils.sendTooManyRequests(exchange);
+            return;
+        }
+
+        try {
+            switch (exchange.getRequestMethod()) {
+                case "POST" -> handlePOST(exchange);
+                default -> ResponseUtils.sendMethodNotAllowed(exchange);
+            }
+        } catch (Exception e) {
+            ResponseUtils.sendInternalServerError(exchange);
+        }
+    }
+
+    private void handlePOST(HttpExchange exchange){
+        try {
+            if (employeeService.verifyCredentials(employeeService.buildCredentialsToVerify(exchange.getRequestHeaders().get("Authorization").get(0)))) {
+                ResponseUtils.sendOK(exchange, null);
+                return;
+            }
+
+            ResponseUtils.sendUnauthorized(exchange);
+        } catch (Exception e) {
+            ResponseUtils.sendInternalServerError(exchange);
+        }
     }
 }

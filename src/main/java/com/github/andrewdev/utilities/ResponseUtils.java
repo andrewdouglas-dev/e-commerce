@@ -32,6 +32,10 @@ public class ResponseUtils {
         sendResponseWithBody(exchange, 400, body);
     }
 
+    public static void sendUnauthorized(HttpExchange exchange) {
+        sendResponseWithNoBody(exchange, 401);
+    }
+
     public static void sendResourceNotFound(HttpExchange exchange) {
         sendResponseWithNoBody(exchange, 404);
     }

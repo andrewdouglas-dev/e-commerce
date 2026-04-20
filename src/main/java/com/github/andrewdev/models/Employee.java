@@ -7,6 +7,14 @@ public class Employee {
     private String email;
     private String username;
 
+    public Employee(String firstName, String lastName, String email, String username) {
+        this.id = null;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.username = username;
+    }
+
     public Employee(Long id, String firstName, String lastName, String email, String username) {
         this.id = id;
         this.firstName = firstName;

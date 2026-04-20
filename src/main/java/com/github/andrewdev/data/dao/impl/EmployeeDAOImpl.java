@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -18,10 +19,10 @@ public class EmployeeDAOImpl implements EmployeeDAO{
 
     @Override
     public Long create(Employee employee) {
-        String statement = "Insert into employees (first_name, last_name, email, username, created_at, updated_at) values ();";
+        String statement = "Insert into employees (first_name, last_name, email, username, created_at, updated_at) values (?,?,?,?,?,?);";
 
         try (Connection connection = DatabaseManager.getConnection();
-            PreparedStatement pStatement = connection.prepareStatement(statement);) {
+            PreparedStatement pStatement = connection.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);) {
             pStatement.setString(1, employee.getFirstName());
             pStatement.setString(2, employee.getLastName());
             pStatement.setString(3, employee.getEmail());
@@ -44,32 +45,53 @@ public class EmployeeDAOImpl implements EmployeeDAO{
 
                     return newId;
                 } else {
+                    logger.log(Level.SEVERE, "Error adding employee. HBERE");
                     throw new SQLException("Failed to retrieve generated ID");
                 }
             } catch (SQLException e) {
                 throw new RuntimeException("Error occured while adding employee: " + employee.getFirstName(),e);
             }
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error retrieving employees.", e);
-            throw new RuntimeException("Error occured while finding all employees",e);
+            logger.log(Level.SEVERE, "Error adding employee.", e);
+            throw new RuntimeException("Error occured while adding employee",e);
         }
     }
 
     @Override
     public Employee getById(Long id) {
-        String statement = "Select id,first_name,last_name,email,username from employees where id ?;";
+        String statement = "Select id,first_name,last_name,email,username from employees where id = ?;";
 
         try (Connection connection = DatabaseManager.getConnection();
             PreparedStatement pStatement = connection.prepareStatement(statement);) {
             pStatement.setLong(1, id);
 
-            ResultSet resultSet= pStatement.executeQuery();
+            ResultSet resultSet = pStatement.executeQuery();
 
             return mapResultSetToEmployee(resultSet);
         } catch (Exception e) {
-            logger.log(Level.SEVERE, "Error retrieving employees.", e);
-            throw new RuntimeException("Error occured while finding all employees",e);
+            logger.log(Level.SEVERE, "Error occured while finding employee by id.", e);
+            throw new RuntimeException("Error occured while finding employee by id.",e);
         }
+    }
+
+    @Override
+    public Long getIdByEmail(String email) {
+        String statement = "Select id from employees where email = ?;";
+
+        try (Connection connection = DatabaseManager.getConnection();
+            PreparedStatement pStatement = connection.prepareStatement(statement)) {
+            pStatement.setString(1, email);
+
+            try (ResultSet resultSet = pStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    return (Long) resultSet.getLong("id");
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error occured while finding employee by email.",e);
+        }
+
+        return null;
     }
 
     @Override
