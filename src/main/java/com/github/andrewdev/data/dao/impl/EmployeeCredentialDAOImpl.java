@@ -18,11 +18,10 @@ public class EmployeeCredentialDAOImpl implements EmployeeCredentialDOA{
     private static final Argon2 argon2 = Argon2Factory.create();
 
     @Override
-    public void create(EmployeeCredentials employee) {
+    public void create(EmployeeCredentials employee, Connection connection) {
         String statement = "Insert into employeeCredentials (id, password, created_at, updated_at) values (?,?,?,?);";
 
-        try (Connection connection = DatabaseManager.getConnection();
-            PreparedStatement pStatement = connection.prepareStatement(statement);) {
+        try (PreparedStatement pStatement = connection.prepareStatement(statement);) {
             pStatement.setLong(1,employee.getId());
             pStatement.setString(2,employee.getPassword());
             pStatement.setDate(3, java.sql.Date.valueOf(java.time.LocalDate.now()));

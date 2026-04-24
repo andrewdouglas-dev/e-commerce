@@ -18,11 +18,10 @@ public class EmployeeDAOImpl implements EmployeeDAO{
     private static final Logger logger = Logger.getLogger(EmployeeDAOImpl.class.getName());
 
     @Override
-    public Long create(Employee employee) {
+    public Long create(Employee employee, Connection connection) {
         String statement = "Insert into employees (first_name, last_name, email, username, created_at, updated_at) values (?,?,?,?,?,?);";
 
-        try (Connection connection = DatabaseManager.getConnection();
-            PreparedStatement pStatement = connection.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);) {
+        try (PreparedStatement pStatement = connection.prepareStatement(statement, Statement.RETURN_GENERATED_KEYS);) {
             pStatement.setString(1, employee.getFirstName());
             pStatement.setString(2, employee.getLastName());
             pStatement.setString(3, employee.getEmail());

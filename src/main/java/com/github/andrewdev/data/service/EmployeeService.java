@@ -1,9 +1,12 @@
 package com.github.andrewdev.data.service;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.Base64;
 import java.util.List;
 
+import com.github.andrewdev.data.DatabaseManager;
 import com.github.andrewdev.data.dao.EmployeeCredentialDOA;
 import com.github.andrewdev.data.dao.EmployeeDAO;
 import com.github.andrewdev.data.dao.impl.EmployeeCredentialDAOImpl;
@@ -21,9 +24,22 @@ public class EmployeeService {
         this.credentialDAO = new EmployeeCredentialDAOImpl();
     }
 
-    public Employee createEmployee(Employee employee, String credentials) {
-        employeeDAO.create(employee);
-        credentialDAO.create(buildCredentialsWithHash(credentials));
+    public Employee createEmployee(Employee employee, String credentials) throws SQLException {
+        try (Connection connection = DatabaseManager.getConnection();){
+            connection.setAutoCommit(false);
+
+            try {
+                employeeDAO.create(employee, connection);
+                credentialDAO.create(buildCredentialsWithHash(credentials), connection);
+
+                connection.commit();
+            } catch (Exception e) {
+                connection.rollback();
+                throw e;
+            }
+        } catch (SQLException e) {
+            throw e;
+        }
 
         return employee;
     }
